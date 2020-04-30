@@ -1,0 +1,69 @@
+# Age 15 Epic Baseline Exposure
+
+glint --datafile m15epic.RData.txt --covarfile ce15.RData.txt --phenofile pe15.RData.txt --gsave --out epic15glint
+
+glint --datafile epic15glint.glint --plot --plotpcs --numpcs 2 --out pcs_plot_epic15glint
+
+glint --datafile epic15glint.glint --maxpcstd 1 4 --gsave --out data_cleaned_epic15glint
+
+glint --datafile data_cleaned_epic15glint.glint --refactor --k 6 --covar SexF RaceB RaceH RaceO --gsave --out data_cleaned_epic15glint_v2
+
+glint --datafile data_cleaned_epic15glint_v2.glint --epi --savepcs 10 --covar rc1 rc2 rc3 rc4 rc5 rc6 --gsave --out data_final_epic15glint
+
+glint --datafile data_final_epic15glint.glint --ewas --linreg --pheno r199z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ck6yagem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.epic15glint.199z
+
+glint --plot --qqplot --manhattan --results results.epic15glint.199z.glint.linreg.txt --out epic15glint.199z
+
+xdg-open epic15glint.199z.glint.manhattan.png
+
+xdg-open epic15glint.199z.glint.qqplot.png
+
+# Age 15 Epic Year 15 Exposure
+
+glint --datafile data_final_epic15glint.glint --ewas --linreg --pheno r614z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ck6yagem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.epic15glint.614z
+
+glint --plot --qqplot --manhattan --results results.epic15glint.614z.glint.linreg.txt --out epic15glint.614z
+
+xdg-open epic15glint.614z.glint.manhattan.png
+
+xdg-open epic15glint.614z.glint.qqplot.png
+
+# Age 15 Epic GPA
+
+glint --datafile data_final_epic15glint.glint --ewas --linreg --pheno gpa --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc Pov ck6yagem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.epic15glint.gpa
+
+glint --plot --qqplot --manhattan --results results.epic15glint.gpa.glint.linreg.txt --out epic15glint.gpa
+
+xdg-open epic15glint.gpa.glint.manhattan.png
+
+xdg-open epic15glint.gpa.glint.qqplot.png
+
+
+#Validating all dependencies are installed...
+#You are now running Anaconda Python
+#All dependencies are installed
+#INFO      >>> python /home/LOCAL/bin/glint.py --datafile m15epic.RData.txt --covarfile ce15.RData.txt --phenofile pe15.RData.txt --gsave --out epic15glint
+#INFO      Starting GLINT...
+#INFO      Validating arguments...
+#INFO      Loading file m15epic.RData.txt...
+#INFO      Checking for missing values in the data file...
+#INFO      Validating phenotypes file...
+#INFO      Loading file pe15.RData.txt...
+#ERROR     in methylation data; EXCEPTION: <type 'exceptions.TypeError'>, sequence item 0: expected string, float found; TRACEBACK: /home/LOCAL/src/glint-1.0.4/parsers/methylation_data_parser.py:233, in run: self.module = methylation_data.MethylationDataLoader(datafile = args.datafile, phenofile = args.phenofile, covarfiles = args.covarfile) ---> /home/LOCAL/src/glint-1.0.4/modules/methylation_data.py:666, in __init__: phenotype, phenonames = self._load_and_validate_phenotype(phenofile, samples_size, samples_ids) ---> /home/LOCAL/src/glint-1.0.4/modules/methylation_data.py:215, in _load_and_validate_phenotype: pheno, header = self._load_and_validate_samples_data(phenofile_list, samples_size, samples_ids, default_pheno_name) ---> /home/LOCAL/src/glint-1.0.4/modules/methylation_data.py:197, in _load_and_validate_samples_data: data, header = self._load_and_validate_samples_info(datafile, samples_size, samples_ids) ---> /home/LOCAL/src/glint-1.0.4/modules/methylation_data.py:187, in _load_and_validate_samples_info: self._validate_samples_ids(new_samples_ids, samples_ids) ---> /home/LOCAL/src/glint-1.0.4/modules/methylation_data.py:175, in _validate_samples_ids: common.terminate("Sample identifiers are not identical to the sample identifiers in the data file: %s and more." % ", ".join(list(differ)[:10]))
+#Traceback (most recent call last):
+#  File "/home/LOCAL/bin/glint.py", line 312, in <module>
+#      parser.run()
+#        File "/home/LOCAL/bin/glint.py", line 222, in run
+#            self.meth_parser.run(self.args)
+#              File "/home/LOCAL/src/glint-1.0.4/parsers/methylation_data_parser.py", line 233, in run
+#                  self.module = methylation_data.MethylationDataLoader(datafile = args.datafile, phenofile = args.phenofile, covarfiles = args.covarfile)
+#                    File "/home/LOCAL/src/glint-1.0.4/modules/methylation_data.py", line 666, in __init__
+#                        phenotype, phenonames = self._load_and_validate_phenotype(phenofile, samples_size, samples_ids)
+#                          File "/home/LOCAL/src/glint-1.0.4/modules/methylation_data.py", line 215, in _load_and_validate_phenotype
+#                              pheno, header = self._load_and_validate_samples_data(phenofile_list, samples_size, samples_ids, default_pheno_name)
+#                                File "/home/LOCAL/src/glint-1.0.4/modules/methylation_data.py", line 197, in _load_and_validate_samples_data
+#                                    data, header = self._load_and_validate_samples_info(datafile, samples_size, samples_ids)
+#                                      File "/home/LOCAL/src/glint-1.0.4/modules/methylation_data.py", line 187, in _load_and_validate_samples_info
+#                                          self._validate_samples_ids(new_samples_ids, samples_ids)
+#                                            File "/home/LOCAL/src/glint-1.0.4/modules/methylation_data.py", line 175, in _validate_samples_ids
+#                                                common.terminate("Sample identifiers are not

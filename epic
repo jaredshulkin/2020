@@ -1,0 +1,135 @@
+library(gtools)
+
+# load EPIC sample sheet
+epic_samplesheet <- readRDS("/home/HPA/HPA_group_datasets/MethylationData/April2019/EPIC_data_April2019/EPIC_sample_sheet_ffIDs.RDS")
+
+# subset by year
+epic_9 <- epic_samplesheet[epic_samplesheet$wave == "FC09",]
+epic_15 <- epic_samplesheet[epic_samplesheet$wave == "FC15",]
+
+# take out unresolveds from sample sheet
+epic_15 <- epic_15[epic_15$Idproblemstatus != "unresolved",]
+
+# read EPIC beta values
+betaepic <- as.matrix(readRDS(file = "/home/HPA/HPA_group_datasets/MethylationData/April2019/EPIC_data_April2019/EPIC_bmiqnorm.RDS"))
+
+# clip beta values and convert B to M
+betaepic[betaepic > 0.99] <- 0.99
+betaepic[betaepic < 0.01] <- 0.01
+mepic <- logit(betaepic)
+
+# subset methylation data based on sample participants
+m9epic <- mepic[, colnames(mepic) %in% epic_9$MethID]
+m9epic <- m9epic[, order(colnames(m9epic))]
+m15epic <- mepic[, colnames(mepic) %in% epic_15$MethID]
+m15epic <- m15epic[, order(colnames(m15epic))]
+
+# load EPIC  manifest (Zhou probes to mask)
+epic_manifest <- readRDS("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/Zhou/EPIC.hg19.manifest.rds")
+epic_manifest <- as(epic_manifest, "data.frame")
+epic_manifest$ID <- rownames(epic_manifest)
+
+# exclude bad probes and sex chromosomes
+manSubepic <- epic_manifest[!epic_manifest$MASK_general, ]
+manSubepic <- manSubepic[manSubepic$seqnames != "chrX",]
+manSubepic <- manSubepic[manSubepic$seqnames != "chrY",]
+manSubepic <- manSubepic[manSubepic$seqnames != "chrM",]
+
+# load McCartney bad probe data
+mc1epic <- read.table("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/McCartney/1-s2.0-S221359601630071X-mmc1.txt", header = T)
+mc2epic <- read.table("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/McCartney/1-s2.0-S221359601630071X-mmc2.txt")
+
+mc1epic$maf <- apply(mc1epic, 1, function(x){max(x[13:18])})
+mc1epic <- mc1epic[mc1epic$maf >0.05,]
+
+manSubepic <- manSubepic[!(manSubepic$ID %in% mc1epic$IlmnID),]
+manSubepic <- manSubepic[!(manSubepic$ID %in% mc2epic$V1),]
+
+# exclude all bad probes from M data
+m15epic <- m15epic[rownames(m15epic) %in% manSubepic$ID,]
+m9epic <- m9epic[rownames(m9epic) %in% manSubepic$ID,]
+
+# function to check variation across samples for a CpG
+varCheck <- function(x) {
+p <- quantile(x,c(.1,.9))
+return(p[2]/p[1] > 1.05)}
+
+# exclude low variation CpGs
+m9Newepic <- m9epic[apply(m9epic,1,varCheck),]
+m15Newepic <- m15epic[apply(m15epic,1,varCheck),]
+
+
+# load in phenocovar data
+load("a.RData")
+
+# make rownames of phenocovar data MethID
+FF_NATA3 <- merge(a, epic_samplesheet[,c("MethID", "ffFam")], by = "ffFam")
+FF_NATA4 <- FF_NATA3[,-59]
+rownames(FF_NATA4) <- FF_NATA3[,59]
+
+# subset FF_NATA by FC09 and FC15
+subsetepic_9 <- subset(FF_NATA4, rownames(FF_NATA4) %in% epic_9$MethID)
+subsetepic_15 <- subset(FF_NATA4, rownames(FF_NATA4) %in% epic_15$MethID)
+
+# get only pheno (cog + exp)
+phenoepic_9 <- subsetepic_9
+phenoepic_15 <- subsetepic_15
+# ppvt, wj9, wj10, ds, baseline, yr9
+phenoepic_9 <- phenoepic_9[, c(1, 21, 22, 23, 24, 52, 53)]
+# gpa, baseline, yr15
+phenoepic_15 <- phenoepic_15[, c(1, 58, 52, 54)]
+
+# get only covar
+covarepic_9 <- subsetepic_9
+covarepic_15 <- subsetepic_15
+# SexF, Edu1, Edu2, Edu3, RaceB, RaceH, RaceO, US, cm1nonres, cm3cogsc, Pov, cities
+covarepic_9 <- covarepic_9[, c(1, 25:32, 20, 11, 57, 55, 33:51)]
+covarepic_15 <- covarepic_15[, c(1, 25:32, 20, 11, 57, 56, 33:51)]
+
+# convert to df
+m9Newepic <- as.data.frame(m9Newepic)
+phenoepic_9 <- as.data.frame(phenoepic_9)
+covarepic_9 <- as.data.frame(covarepic_9)
+
+m15Newepic <- as.data.frame(m15Newepic)
+phenoepic_15 <- as.data.frame(phenoepic_15)
+covarepic_15 <- as.data.frame(covarepic_15)
+
+# remove NAs
+phenoepic_9 <- phenoepic_9[complete.cases(phenoepic_9),]
+covarepic_9 <- covarepic_9[complete.cases(covarepic_9),]
+
+phenoepic_15 <- phenoepic_15[complete.cases(phenoepic_15),]
+covarepic_15 <- covarepic_15[complete.cases(covarepic_15),]
+
+x <- row.names(phenoepic_9)
+covarepic_91 <- covarepic_9[row.names(covarepic_9) %in% x,]
+
+w <- row.names(covarepic_91)
+phenoepic_91 <- phenoepic_9[row.names(phenoepic_9) %in% w,]
+m9Newepic2 <- m9Newepic[, names(m9Newepic) %in% w]
+
+y <- colnames(m9Newepic2)
+phenoepic_92 <- phenoepic_91[row.names(phenoepic_91) %in% y,]
+covarepic_92 <- covarepic_91[row.names(covarepic_91) %in% y,]
+
+x <- row.names(phenoepic_15)
+covarepic_151 <- covarepic_15[row.names(covarepic_15) %in% x,]
+
+w <- row.names(covarepic_151)
+phenoepic_151 <- phenoepic_15[row.names(phenoepic_15) %in% w,]
+m15Newepic2 <- m15Newepic[,names(m15Newepic) %in% w]
+
+y <- colnames(m15Newepic2)
+phenoepic_152 <- phenoepic_151[row.names(phenoepic_151) %in% y,]
+covarepic_152 <- covarepic_151[row.names(covarepic_151) %in% y,]
+
+
+# match colnames of data with rownames of pheno/covar
+phenoepic_93 <- phenoepic_92[match(colnames(m9Newepic2), row.names(phenoepic_92)),]
+covarepic_93 <- covarepic_92[match(colnames(m9Newepic2), row.names(covarepic_92)),]
+
+phenoepic_153 <- phenoepic_152[match(colnames(m15Newepic2), row.names(phenoepic_152)),]
+covarepic_153 <- covarepic_152[match(colnames(m15Newepic2), row.names(covarepic_152)),]
+
+

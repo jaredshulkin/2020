@@ -1,0 +1,70 @@
+# Age 9 450 Baseline Exposure
+
+glint --datafile m9450.RData.txt --covarfile c49.RData.txt --phenofile p49.RData.txt --gsave --out k4509glint
+
+glint --datafile k4509glint.glint --plot --plotpcs --numpcs 2 --out pcs_plot_k4509glint
+
+glint --datafile k4509glint.glint --maxpcstd 1 4 --gsave --out data_cleaned_k4509glint
+
+glint --datafile data_cleaned_k4509glint.glint --refactor --k 6 --covar SexF RaceB RaceH RaceO --gsave --out data_cleaned_k4509glint_v2
+
+glint --datafile data_cleaned_k4509glint_v2.glint --epi --savepcs 10 --covar rc1 rc2 rc3 rc4 rc5 rc6 --gsave --out data_final_k4509glint
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno r199z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.199z
+
+glint --plot --qqplot --manhattan --results results.k4509glint.199z.glint.linreg.txt --out k4509glint.199z
+
+xdg-open k4509glint.199z.glint.manhattan.png
+
+xdg-open k4509glint.199z.glint.qqplot.png
+
+# Age 9 450 Year 9 Exposure
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno r505z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.505z
+
+glint --plot --qqplot --manhattan --results results.k4509glint.505z.glint.linreg.txt --out k4509glint.505z
+
+xdg-open k4509glint.505z.glint.manhattan.png
+
+xdg-open k4509glint.505z.glint.qqplot.png
+
+# Age 9 450 PPVT
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno ppvtz --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.ppvt
+
+glint --plot --qqplot --manhattan --results results.k4509glint.ppvt.glint.linreg.txt --out k4509glint.ppvt
+
+xdg-open k4509glint.ppvt.glint.manhattan.png
+
+xdg-open k4509glint.ppvt.glint.qqplot.png
+
+# Age 9 450 WJ9
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno wj9z --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.wj9
+
+glint --plot --qqplot --manhattan --results results.k4509glint.wj9.glint.linreg.txt --out k4509glint.wj9
+
+xdg-open k4509glint.wj9.glint.manhattan.png
+
+xdg-open k4509glint.wj9.glint.qqplot.png
+
+# Age 9 450 WJ10
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno wj10z --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.wj10
+
+glint --plot --qqplot --manhattan --results results.k4509glint.wj10.glint.linreg.txt --out k4509glint.wj10
+
+xdg-open k4509glint.wj10.glint.manhattan.png
+
+xdg-open k4509glint.wj10.glint.qqplot.png
+
+# Age 9 450 DS
+
+glint --datafile data_final_k4509glint.glint --ewas --linreg --pheno dsz  --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc Pov ch5agem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k4509glint.ds
+
+glint --plot --qqplot --manhattan --results results.k4509glint.ds.glint.linreg.txt --out k4509glint.ds
+
+xdg-open k4509glint.ds.glint.manhattan.png
+
+xdg-open k4509glint.ds.glint.qqplot.png
+

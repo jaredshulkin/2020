@@ -1,0 +1,139 @@
+library(gtools)
+
+# load 450k sample sheet
+k450_samplesheet <- read.csv("/home/HPA/HPA_group_datasets/MethylationData/April2019/k450_April2019_preprocessNOOB_BMIQ/450K_preprocessNOOB_BMIQsamplesheet.csv")
+
+# subset by year
+k450_9 <- k450_samplesheet[k450_samplesheet$Group == "FC09",]
+k450_15 <- k450_samplesheet[k450_samplesheet$Group == "FC15",]
+
+# take out unresolveds from sample sheet
+k450_9 <- k450_9[k450_9$Idproblemstatus != "unresolved",]
+k450_9 <- k450_9[k450_9$Idproblemstatus != "Unresolved",]
+k450_15 <- k450_15[k450_15$Idproblemstatus != "unresolved",]
+
+# read 450k beta values
+beta450 <- as.matrix(readRDS(file = "/home/HPA/HPA_group_datasets/MethylationData/April2019/k450_April2019_preprocessNOOB_BMIQ/450K_all_preprocessnoobbmiq.RDS"))
+
+# clip beta values and convert B to M
+beta450[beta450 > 0.99] <- 0.99
+beta450[beta450 < 0.01] <- 0.01
+m450 <- logit(beta450)
+
+# subset methylation data based on sample participants
+m9 <- m450[, colnames(m450) %in% k450_9$MethID2]
+m9 <- m9[, order(colnames(m9))]
+m15 <- m450[, colnames(m450) %in% k450_15$MethID2]
+m15 <- m15[, order(colnames(m15))]
+
+# load 450k manifest (Zhou probes to mask)
+k450_manifest <- readRDS("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/Zhou/hm450.hg19.manifest.rds")
+k450_manifest <- as(k450_manifest, "data.frame")
+k450_manifest$ID <- rownames(k450_manifest)
+
+# exclude bad probes and sex chromosomes
+manSub <- k450_manifest[!k450_manifest$MASK_general, ]
+manSub <- manSub[manSub$seqnames != "chrX",]
+manSub <- manSub[manSub$seqnames != "chrY",]
+manSub <- manSub[manSub$seqnames != "chrM",]
+
+# load McCartney bad probe data
+mc1 <- read.table("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/McCartney/1-s2.0-S221359601630071X-mmc1.txt", header = T)
+mc2 <- read.table("/home/HPA/HPA_group_datasets/MethylationData/ProbeLists/McCartney/1-s2.0-S221359601630071X-mmc2.txt")
+
+mc1$maf <- apply(mc1, 1, function(x){max(x[13:18])})
+mc1 <- mc1[mc1$maf >0.05,]
+
+manSub <- manSub[!(manSub$ID %in% mc1$IlmnID),]
+manSub <- manSub[!(manSub$ID %in% mc2$V1),]
+
+# exclude all bad probes from M data
+m15 <- m15[rownames(m15) %in% manSub$ID,]
+m9 <- m9[rownames(m9) %in% manSub$ID,]
+
+# function to check variation across samples for a CpG
+varCheck <- function(x) {
+p <- quantile(x,c(.1,.9))
+return(p[2]/p[1] > 1.05)}
+
+# exclude low variation CpGs
+m9New <- m9[apply(m9,1,varCheck),]
+m15New <- m15[apply(m15,1,varCheck),]
+
+# load in phenocovar data
+load("a.RData")
+
+# make rownames of phenocovar data MethID
+FF_NATA3 <- merge(a, k450_samplesheet[,c("MethID2", "ffFam")], by = "ffFam")
+FF_NATA4 <- FF_NATA3[,-59]
+rownames(FF_NATA4) <- FF_NATA3[,59]
+
+# subset FF_NATA by FC09 and FC15
+subset450_9 <- subset(FF_NATA4, rownames(FF_NATA4) %in% k450_9$MethID2)
+subset450_15 <- subset(FF_NATA4, rownames(FF_NATA4) %in% k450_15$MethID2)
+
+# get only pheno (cog + exp)
+pheno450_9 <- subset450_9
+pheno450_15 <- subset450_15
+# ppvt, wj9, wj10, ds, baseline, yr9
+pheno450_9 <- pheno450_9[, c(1, 21, 22, 23, 24, 52, 53)]
+# gpa, baseline, yr15
+pheno450_15 <- pheno450_15[, c(1, 58, 52, 54)]
+
+# get only covar
+covar450_9 <- subset450_9
+covar450_15 <- subset450_15
+# SexF, Edu1, Edu2, Edu3, RaceB, RaceH, RaceO, US, cm1nonres, cm3cogsc, Pov, cities
+covar450_9 <- covar450_9[, c(1, 25:32, 20, 11, 57, 55, 33:51)]
+covar450_15 <- covar450_15[, c(1, 25:32, 20, 11, 57, 56, 33:51)]
+
+
+# convert to df
+m9New <- as.data.frame(m9New)
+pheno450_9 <- as.data.frame(pheno450_9)
+covar450_9 <- as.data.frame(covar450_9)
+
+m15New <- as.data.frame(m15New)
+pheno450_15 <- as.data.frame(pheno450_15)
+covar450_15 <- as.data.frame(covar450_15)
+
+# remove NAs
+pheno450_9 <- pheno450_9[complete.cases(pheno450_9),]
+covar450_9 <- covar450_9[complete.cases(covar450_9),]
+
+pheno450_15 <- pheno450_15[complete.cases(pheno450_15),]
+covar450_15 <- covar450_15[complete.cases(covar450_15),]
+
+x <- row.names(pheno450_9)
+covar450_91 <- covar450_9[row.names(covar450_9) %in% x,]
+
+w <- row.names(covar450_91)
+pheno450_91 <- pheno450_9[row.names(pheno450_9) %in% w,]
+m9New2 <- m9New[, names(m9New) %in% w]
+
+y <- colnames(m9New2)
+pheno450_92 <- pheno450_91[row.names(pheno450_91) %in% y,]
+covar450_92 <- covar450_91[row.names(covar450_91) %in% y,]
+
+x <- row.names(pheno450_15)
+covar450_151 <- covar450_15[row.names(covar450_15) %in% x,]
+
+w <- row.names(covar450_151)
+pheno450_151 <- pheno450_15[row.names(pheno450_15) %in% w,]
+m15New2 <- m15New[,names(m15New) %in% w]
+
+y <- colnames(m15New2)
+pheno450_152 <- pheno450_151[row.names(pheno450_151) %in% y,]
+covar450_152 <- covar450_151[row.names(covar450_151) %in% y,]
+
+
+# match colnames of data with rownames of pheno/covar
+pheno450_93 <- pheno450_92[match(colnames(m9New2), row.names(pheno450_92)),]
+covar450_93 <- covar450_92[match(colnames(m9New2), row.names(covar450_92)),]
+
+pheno450_153 <- pheno450_152[match(colnames(m15New2), row.names(pheno450_152)),]
+covar450_153 <- covar450_152[match(colnames(m15New2), row.names(covar450_152)),]
+
+
+
+

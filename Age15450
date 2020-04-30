@@ -1,0 +1,40 @@
+# Age 15 450 Baseline Exposure
+
+glint --datafile m15450.RData.txt --covarfile c415.RData.txt --phenofile p415.RData.txt --gsave --out k45015glint
+
+glint --datafile k45015glint.glint --plot --plotpcs --numpcs 2 --out pcs_plot_k45015glint
+
+glint --datafile k45015glint.glint --maxpcstd 1 4 --gsave --out data_cleaned_k45015glint
+
+glint --datafile data_cleaned_k45015glint.glint --refactor --k 6 --covar SexF RaceB RaceH RaceO --gsave --out data_cleaned_k45015glint_v2
+
+glint --datafile data_cleaned_k45015glint_v2.glint --epi --savepcs 10 --covar rc1 rc2 rc3 rc4 rc5 rc6 --gsave --out data_final_k45015glint
+
+glint --datafile data_final_k45015glint.glint --ewas --linreg --pheno r199z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ck6yagem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k45015glint.199z
+
+glint --plot --qqplot --manhattan --results results.k45015glint.199z.glint.linreg.txt --out k45015glint.199z
+
+xdg-open k45015glint.199z.glint.manhattan.png
+
+xdg-open k45015glint.199z.glint.qqplot.png
+
+# Age 15 450 Year 15 Exposure
+
+glint --datafile data_final_k45015glint.glint --ewas --linreg --pheno r614z --covar SexF Edu1 Edu2 Edu3 US cm1nonres Pov ck6yagem Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k45015glint.614z
+
+glint --plot --qqplot --manhattan --results results.k45015glint.614z.glint.linreg.txt --out k45015glint.614z
+
+xdg-open k45015glint.614z.glint.manhattan.png
+
+xdg-open k45015glint.614z.glint.qqplot.png
+
+# Age 15 450 GPA
+
+glint --datafile data_final_k45015glint.glint --ewas --linreg --pheno gpa --covar SexF Edu1 Edu2 Edu3 US cm1nonres cm3cogsc ck6yagem Pov Milwaukee New_York San_Jose Boston Nashville Chicago Jacksonville Toledo San_Antonio Pittsburgh Austin Norfolk Baltimore Detroit Newark Philadelphia Richmond Corpus_Christi Indianapolis rc1 rc2 rc3 rc4 rc5 rc6 epi1 epi2 epi3 --stdth 0.01 --rmxy --rmns --rmpoly --out results.k45015glint.gpa
+
+glint --plot --qqplot --manhattan --results results.k45015glint.gpa.glint.linreg.txt --out k45015glint.gpa
+
+xdg-open k45015glint.gpa.glint.manhattan.png
+
+xdg-open k45015glint.gpa.glint.qqplot.png
+
